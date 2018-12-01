@@ -9,6 +9,7 @@ export declare enum BrocastType {
 export interface WsResponse {
     type: BrocastType;
     ts: number;
+    topic?: string;
 }
 /**
  * 交易对枚举
@@ -37,6 +38,22 @@ export declare enum DepthLevel {
  */
 export interface WsResponseTicker extends WsResponse {
     seq: number;
+    ticker: {
+        LastPrice: number;
+        LastVolume: number;
+        MaxBuyPrice: number;
+        MaxBuyVolume: number;
+        MinSalePrice: number;
+        MinSaleVolume: number;
+        BeforeH24Price: number;
+        HighestH24Price: number;
+        LowestH24Price: number;
+        OneDayVolume1: number;
+        OneDayVolume2: number;
+    };
+}
+export interface WsResponseAllTickers {
+    symbol: string;
     ticker: {
         LastPrice: number;
         LastVolume: number;

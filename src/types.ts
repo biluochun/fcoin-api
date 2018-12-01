@@ -11,6 +11,7 @@ export enum BrocastType {
 export interface WsResponse {
   type: BrocastType;
   ts: number;
+  topic?: string;
 }
 
 /**
@@ -47,6 +48,23 @@ export enum DepthLevel {
  */
 export interface WsResponseTicker extends WsResponse {
   seq: number;
+  ticker: {
+    LastPrice: number; // 最新成交价
+    LastVolume: number; // 最近一笔成交量
+    MaxBuyPrice: number; // 最大买一价格
+    MaxBuyVolume: number; // 最大买一量
+    MinSalePrice: number; // 最小卖一价格
+    MinSaleVolume: number; // 最小卖一量
+    BeforeH24Price: number; // 24小时前成交价
+    HighestH24Price: number; // 24小时内最高价
+    LowestH24Price: number; // 24小时内最低价
+    OneDayVolume1: number; // 24小时内基准货币成交量, 如 btcusdt 中 btc 的量
+    OneDayVolume2: number; // 24小时内基准货币成交量, 如 btcusdt 中 usdt 的量
+  };
+}
+
+export interface WsResponseAllTickers {
+  symbol: string;
   ticker: {
     LastPrice: number; // 最新成交价
     LastVolume: number; // 最近一笔成交量

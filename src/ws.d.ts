@@ -1,4 +1,4 @@
-import { SymbolEnum, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle } from './types';
+import { SymbolEnum, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, WsResponseAllTickers } from './types';
 /**
  * topic 表示订阅的主题
  * symbol 表示对应交易币种. 所有币种区分的 topic 都在 topic 末尾.
@@ -34,6 +34,7 @@ export declare class FcoinWebSocket {
      * 监听交易对的数据
      */
     OnTicker(symbol: SymbolEnum, fun: (data: WsResponseTicker) => any): void;
+    OnAllTickers(fun: (data: WsResponseAllTickers[]) => any): void;
     /**
      * 深度信息变更
      */

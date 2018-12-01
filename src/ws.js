@@ -72,6 +72,29 @@ class FcoinWebSocket {
             });
         }, `ticker.${symbol}`);
     }
+    OnAllTickers(fun) {
+        this.On((data) => {
+            fun(data.tickers.map((item) => {
+                const res = {
+                    symbol: item.symbol,
+                    ticker: {
+                        LastPrice: item.ticker[0],
+                        LastVolume: item.ticker[1],
+                        MaxBuyPrice: item.ticker[2],
+                        MaxBuyVolume: item.ticker[3],
+                        MinSalePrice: item.ticker[4],
+                        MinSaleVolume: item.ticker[5],
+                        BeforeH24Price: item.ticker[6],
+                        HighestH24Price: item.ticker[7],
+                        LowestH24Price: item.ticker[8],
+                        OneDayVolume1: item.ticker[9],
+                        OneDayVolume2: item.ticker[10],
+                    },
+                };
+                return res;
+            }));
+        }, `all-tickers`);
+    }
     /**
      * 深度信息变更
      */
@@ -130,7 +153,9 @@ class FcoinWebSocket {
             }
             this.typeListen[name] = [];
             this.typeListen[name].push(callback);
-            this.ws.send(JSON.stringify({ cmd: 'sub', args: topics }));
+            const send = { cmd: 'sub', args: topics };
+            // if (send.args[0] === 'all-tickers') (send as any).id = 'tickers';
+            this.ws.send(JSON.stringify(send));
         });
     }
     /**
@@ -141,13 +166,14 @@ class FcoinWebSocket {
             try {
                 const data = JSON.parse(msg.toString());
                 // logger.trace(`ws ${data.type}:`, data);
+                // console.log(data);
                 switch (data.type) {
                     case types_1.BrocastType.hello: break;
                     case types_1.BrocastType.ping:
                         this.LastHeartbeat = data;
                         break;
                     case types_1.BrocastType.topics:
-                        // logger.info('订阅成功', data);
+                        // console.log(data);
                         break;
                     default:
                         this.TopicCallback(data);
@@ -164,7 +190,11 @@ class FcoinWebSocket {
         });
     }
     TopicCallback(data) {
-        const listen = this.typeListen[data.type];
+        let listen;
+        if (data.type)
+            listen = this.typeListen[data.type];
+        else if (data.topic)
+            listen = this.typeListen[data.topic];
         if (!listen) {
             // logger.error('未处理的消息', data);
             return;

@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { SymbolEnum, WsResponse, BrocastType, WatchTicker, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, DepthUnit } from './types';
+import { SymbolEnum, WsResponse, BrocastType, WatchTicker, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, DepthUnit, WsResponseAllTickers } from './types';
 import { FcoinUrl } from '.';
 
 /**
@@ -76,6 +76,30 @@ export class FcoinWebSocket {
     }, `ticker.${symbol}`);
   }
 
+  OnAllTickers (fun: (data: WsResponseAllTickers[]) => any) {
+    this.On((data: any) => {
+      fun(data.tickers.map((item: any) => {
+        const res: WsResponseAllTickers = {
+          symbol: item.symbol,
+          ticker: {
+            LastPrice: item.ticker[0], // 最新成交价
+            LastVolume: item.ticker[1], // 最近一笔成交量
+            MaxBuyPrice: item.ticker[2], // 最大买一价格
+            MaxBuyVolume: item.ticker[3], // 最大买一量
+            MinSalePrice: item.ticker[4], // 最小卖一价格
+            MinSaleVolume: item.ticker[5], // 最小卖一量
+            BeforeH24Price: item.ticker[6], // 24小时前成交价
+            HighestH24Price: item.ticker[7], // 24小时内最高价
+            LowestH24Price: item.ticker[8], // 24小时内最低价
+            OneDayVolume1: item.ticker[9], // 24小时内基准货币成交量, 如 btcusdt 中 btc 的量
+            OneDayVolume2: item.ticker[10], // 24小时内基准货币成交量, 如 btcusdt 中 usdt 的量
+          },
+        };
+        return res;
+      }));
+    }, `all-tickers`);
+  }
+
   /**
    * 深度信息变更
    */
@@ -134,7 +158,9 @@ export class FcoinWebSocket {
     }
     this.typeListen[name] = [];
     this.typeListen[name].push(callback);
-    this.ws.send(JSON.stringify({ cmd: 'sub', args: topics }));
+    const send = { cmd: 'sub', args: topics };
+    // if (send.args[0] === 'all-tickers') (send as any).id = 'tickers';
+    this.ws.send(JSON.stringify(send));
   }
 
   /**
@@ -145,11 +171,12 @@ export class FcoinWebSocket {
       try {
         const data = JSON.parse(msg.toString()) as WsResponse;
         // logger.trace(`ws ${data.type}:`, data);
+        // console.log(data);
         switch (data.type) {
           case BrocastType.hello: break;
           case BrocastType.ping: this.LastHeartbeat = data as any; break;
           case BrocastType.topics:
-            // logger.info('订阅成功', data);
+            // console.log(data);
             break;
           default: this.TopicCallback(data); break;
         }
@@ -165,7 +192,10 @@ export class FcoinWebSocket {
   }
 
   private TopicCallback (data: WsResponse) {
-    const listen = this.typeListen[data.type];
+    let listen;
+    if (data.type) listen = this.typeListen[data.type];
+    else if (data.topic) listen = this.typeListen[data.topic];
+
     if (!listen) {
       // logger.error('未处理的消息', data);
       return;
