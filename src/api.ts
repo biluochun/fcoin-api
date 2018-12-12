@@ -18,9 +18,9 @@ export class FcoinApi {
   /**
    * 创建订单（买卖）
    */
-  async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string) {
+  async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string) {
     const time = Date.now().toString();
-    const signtmp = this.secret(`POST${FcoinUrl.order}${time}amount=${amount}&price=${price}&side=${side}&symbol=${symbol}&type=${type}`);
+    const signtmp = this.secret(`POST${FcoinUrl.order}${time}amount=${amount}&exchange=${exchange}&price=${price}&side=${side}&symbol=${symbol}&type=${type}`);
 
     // 发送新建订单的请求
     return fetch(FcoinUrl.order, {
@@ -31,7 +31,7 @@ export class FcoinApi {
         'FC-ACCESS-TIMESTAMP': time,
         'Content-Type': 'application/json;charset=UTF-8',
       },
-      body: JSON.stringify({ type, side, amount, price, symbol }),
+      body: JSON.stringify({ type, side, amount, price, symbol, exchange }),
     }).then(res => res.json()).then(res => {
       if (res.status) return new FcoinApiRes(null, res, res.msg);
       return res as FcoinApiRes<string>;
@@ -43,7 +43,7 @@ export class FcoinApi {
   /**
    * 撤销订单（买卖）
    */
-  OrderCancel (id: string) {
+  async OrderCancel (id: string) {
     const time = Date.now().toString();
     const url = `${FcoinUrl.order}/${id}/submit-cancel`;
     const signtmp = this.secret(`POST${url}${time}`);
@@ -66,7 +66,7 @@ export class FcoinApi {
   }
 
   // 查询账户资产
-  FetchBalance () {
+  async FetchBalance () {
     const time = Date.now().toString();
     const signtmp = this.secret(`GET${FcoinUrl.balance}${time}`);
     return fetch(FcoinUrl.balance, {
@@ -85,7 +85,7 @@ export class FcoinApi {
   }
 
   // 查询所有订单
-  FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', after = '', before = '') {
+  async FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', after = '', before = '') {
     const time = Date.now().toString();
     let url;
     if (before) {
@@ -113,7 +113,7 @@ export class FcoinApi {
   }
 
   // 获取指定 id 的订单
-  FetchOrderById (id: string) {
+  async FetchOrderById (id: string) {
     const time = Date.now().toString();
     const url = `${FcoinUrl.order}/${id}`;
     const signtmp = this.secret(`GET${url}${time}`);
@@ -135,7 +135,7 @@ export class FcoinApi {
   /**
    * 行情接口(ticker)
    */
-  Ticker (symbol: SymbolEnum) {
+  async Ticker (symbol: SymbolEnum) {
     let url = `${FcoinUrl.market_http}/ticker/${symbol}`;
     return fetch(url, {
       method: 'GET',
@@ -169,7 +169,7 @@ export class FcoinApi {
   /**
    * 深度查询
    */
-  Depth (symbol: SymbolEnum, deep: DepthLevel) {
+  async Depth (symbol: SymbolEnum, deep: DepthLevel) {
     const url = `${FcoinUrl.market_http}/depth/${deep}/${symbol}`;
     return fetch(url, {
       method: 'GET',

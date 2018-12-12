@@ -5,7 +5,7 @@ export declare class FcoinApi {
     /**
      * 创建订单（买卖）
      */
-    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string): Promise<FcoinApiRes<null> | FcoinApiRes<string>>;
+    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string, exchange: string): Promise<FcoinApiRes<null> | FcoinApiRes<string>>;
     /**
      * 撤销订单（买卖）
      */
