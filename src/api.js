@@ -5,7 +5,7 @@ const crypto_1 = tslib_1.__importDefault(require("crypto"));
 const node_fetch_1 = tslib_1.__importDefault(require("node-fetch"));
 const types_1 = require("./types");
 const _1 = require(".");
-const urijs_1 = tslib_1.__importDefault(require("urijs"));
+const url_1 = require("url");
 class FCoinApi {
     constructor(key, secret) {
         this.UserConfig = {
@@ -27,7 +27,7 @@ class FCoinApi {
             const data = [];
             const params = [];
             const secret = [`${method}${urlTo}`];
-            const url = urijs_1.default(urlTo);
+            const url = new url_1.URL(urlTo);
             if (body) {
                 for (const arg in body)
                     data.push(`${arg}=${body[arg]}`);
@@ -36,14 +36,14 @@ class FCoinApi {
             else {
                 body = undefined;
             }
-            for (const arg in args)
+            for (const arg in args) {
                 params.push(`${arg}=${args[arg]}`);
+                url.searchParams.set(arg, args[arg]);
+            }
             params.sort();
             data.sort();
-            if (params.length) {
+            if (params.length)
                 secret.push(`?${params.join('&')}`);
-                url.setQuery(args);
-            }
             secret.push(`${time}`);
             secret.push(`${data.join('&')}`);
             const signtmp = this.secret(secret.join(''));
@@ -54,7 +54,7 @@ class FCoinApi {
                 'Content-Type': 'application/json;charset=UTF-8',
             };
             return new Promise(resolve => {
-                node_fetch_1.default(url.href(), {
+                node_fetch_1.default(url.href, {
                     method,
                     body,
                     headers,

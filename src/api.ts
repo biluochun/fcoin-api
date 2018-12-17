@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import fetch from 'node-fetch';
 import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData } from './types';
 import { FCoinUrl } from '.';
-import URI from 'urijs';
+import { URL } from 'url';
 
 export class FCoinApi {
   private UserConfig = {
@@ -26,7 +26,7 @@ export class FCoinApi {
     const data = [] as string[];
     const params = [] as string[];
     const secret = [`${method}${urlTo}`];
-    const url = URI(urlTo);
+    const url = new URL(urlTo);
 
     if (body) {
       for (const arg in body) data.push(`${arg}=${body[arg]}`);
@@ -35,14 +35,15 @@ export class FCoinApi {
       body = undefined;
     }
 
-    for (const arg in args) params.push(`${arg}=${args[arg]}`);
+    for (const arg in args) {
+      params.push(`${arg}=${args[arg]}`);
+      url.searchParams.set(arg, args[arg]);
+    }
     params.sort();
     data.sort();
 
-    if (params.length) {
-      secret.push(`?${params.join('&')}`);
-      url.setQuery(args);
-    }
+    if (params.length) secret.push(`?${params.join('&')}`);
+
     secret.push(`${time}`);
     secret.push(`${data.join('&')}`);
     const signtmp = this.secret(secret.join(''));
@@ -55,7 +56,7 @@ export class FCoinApi {
     };
 
     return new Promise<FcoinApiRes<any>>(resolve => {
-      fetch(url.href(), {
+      fetch(url.href, {
         method,
         body,
         headers,
