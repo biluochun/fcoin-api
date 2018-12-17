@@ -49,8 +49,6 @@ export class FCoinApi {
       'FC-ACCESS-TIMESTAMP': time,
       'Content-Type': 'application/json;charset=UTF-8',
     });
-
-    console.log(secret.join(''), request);
     return request;
   }
 
@@ -69,38 +67,38 @@ export class FCoinApi {
    * 创建订单（买卖）
    */
   async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string) {
-    return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data as string);
+    return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data as FcoinApiRes<string>);
   }
 
   /**
    * 撤销订单（买卖）
    */
   async OrderCancel (id: string) {
-    return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data as {
+    return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data as FcoinApiRes<{
       price: string,
       fill_fees: string,
       filled_amount: string,
       side: SideEnum,
       type: string,
       created_at: number,
-    });
+    }>);
   }
 
   // 查询账户资产
   async FetchBalance () {
-    return this.axios.get(`/accounts/balance`).then(res => res.data as CoinHas[]);
+    return this.axios.get(`/accounts/balance`).then(res => res.data as FcoinApiRes<CoinHas[]>);
   }
 
   // 查询所有订单
   async FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', time?: { value: number; type: 'after' | 'before' }) {
     const params = { symbol, states, limit };
     if (time) Object.assign(params, { [time.type]: time.value.toString() });
-    return this.axios.get('/orders', { params }).then(res => res.data as OrderResult[]);
+    return this.axios.get('/orders', { params }).then(res => res.data as FcoinApiRes<OrderResult[]>);
   }
 
   // 获取指定 id 的订单
   async FetchOrderById (id: string) {
-    return this.axios.get(`/orders/${id}`).then(res => res.data as OrderResult);
+    return this.axios.get(`/orders/${id}`).then(res => res.data as FcoinApiRes<OrderResult>);
   }
 
   /**

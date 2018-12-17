@@ -10,24 +10,24 @@ export declare class FCoinApi {
     /**
      * 创建订单（买卖）
      */
-    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string, exchange: string): Promise<string>;
+    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string, exchange: string): Promise<FcoinApiRes<string>>;
     /**
      * 撤销订单（买卖）
      */
-    OrderCancel(id: string): Promise<{
+    OrderCancel(id: string): Promise<FcoinApiRes<{
         price: string;
         fill_fees: string;
         filled_amount: string;
         side: SideEnum;
         type: string;
         created_at: number;
-    }>;
-    FetchBalance(): Promise<CoinHas[]>;
+    }>>;
+    FetchBalance(): Promise<FcoinApiRes<CoinHas[]>>;
     FetchOrders(symbol: SymbolEnum, states?: string, limit?: string, time?: {
         value: number;
         type: 'after' | 'before';
-    }): Promise<OrderResult[]>;
-    FetchOrderById(id: string): Promise<OrderResult>;
+    }): Promise<FcoinApiRes<OrderResult[]>>;
+    FetchOrderById(id: string): Promise<FcoinApiRes<OrderResult>>;
     /**
      * 行情接口(ticker)
      */

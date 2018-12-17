@@ -45,7 +45,6 @@ class FCoinApi {
             'FC-ACCESS-TIMESTAMP': time,
             'Content-Type': 'application/json;charset=UTF-8',
         });
-        console.log(secret.join(''), request);
         return request;
     }
     transformResponse(res) {
