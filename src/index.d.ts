@@ -1,6 +1,4 @@
-export declare const FcoinUrl: {
-    order: string;
+export declare const FCoinUrl: {
+    ApiV2: string;
     market: string;
-    market_http: string;
-    balance: string;
 };

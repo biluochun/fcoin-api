@@ -1,150 +1,114 @@
-import fetch from 'node-fetch';
 import crypto from 'crypto';
-import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult } from './types';
-import { FcoinUrl } from '.';
+import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData } from './types';
+import { FCoinUrl } from '.';
 
 
-export class FcoinApi {
+export class FCoinApi {
   private UserConfig = {
     Key: '',
     Secret: '',
   };
 
+  axios: AxiosInstance;
+
   constructor (key: string, secret: string) {
     this.UserConfig.Key = key;
     this.UserConfig.Secret = secret;
+    this.axios = Axios.create({
+      baseURL: FCoinUrl.ApiV2,
+      timeout: 10000,
+    });
+    this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
+    this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
+  }
+
+  private transformRequest (request: AxiosRequestConfig): AxiosRequestConfig {
+    const time = Date.now().toString();
+    const data = [] as string[];
+    const params = [] as string[];
+    const secret = [`${request.method!.toLocaleUpperCase()}${request.baseURL}${request.url}`];
+
+    if (request.data) {
+      for (const arg in request.data) data.push(`${arg}=${request.data[arg]}`);
+      request.data = JSON.stringify(request.data);
+    }
+
+    for (const arg in request.params) params.push(`${arg}=${request.params[arg]}`);
+    params.sort();
+    data.sort();
+
+    if (params.length) secret.push(`?${params.join('&')}`);
+    secret.push(`${time}`);
+    secret.push(`${data.join('&')}`);
+    const signtmp = this.secret(secret.join(''));
+
+    request.headers = Object.assign({}, request.headers, {
+      'FC-ACCESS-KEY': this.UserConfig.Key,
+      'FC-ACCESS-SIGNATURE': signtmp,
+      'FC-ACCESS-TIMESTAMP': time,
+      'Content-Type': 'application/json;charset=UTF-8',
+    });
+
+    console.log(secret.join(''), request);
+    return request;
+  }
+
+  private transformResponse (res: AxiosResponse): AxiosResponse {
+    if (res.data.status) {
+      res.data = new FcoinApiRes(null, res.data, res.data.msg);
+    }
+    return res;
+  }
+
+  private onRejected (err: any) {
+    return Promise.resolve({ data: new FcoinApiRes(null, { status: 1, err }, err + '') });
   }
 
   /**
    * 创建订单（买卖）
    */
   async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string) {
-    const time = Date.now().toString();
-    const signtmp = this.secret(`POST${FcoinUrl.order}${time}amount=${amount}&exchange=${exchange}&price=${price}&side=${side}&symbol=${symbol}&type=${type}`);
-
-    // 发送新建订单的请求
-    return fetch(FcoinUrl.order, {
-      method: 'post',
-      headers: {
-        'FC-ACCESS-KEY': this.UserConfig.Key,
-        'FC-ACCESS-SIGNATURE': signtmp,
-        'FC-ACCESS-TIMESTAMP': time,
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-      body: JSON.stringify({ type, side, amount, price, symbol, exchange }),
-    }).then(res => res.json()).then(res => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
-      return res as FcoinApiRes<string>;
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
-    });
+    return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data as string);
   }
 
   /**
    * 撤销订单（买卖）
    */
   async OrderCancel (id: string) {
-    const time = Date.now().toString();
-    const url = `${FcoinUrl.order}/${id}/submit-cancel`;
-    const signtmp = this.secret(`POST${url}${time}`);
-
-    // 发送新建订单的请求
-    return fetch(url, {
-      method: 'post',
-      headers: {
-        'FC-ACCESS-KEY': this.UserConfig.Key,
-        'FC-ACCESS-SIGNATURE': signtmp,
-        'FC-ACCESS-TIMESTAMP': time,
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-    }).then(res => res.json()).then(res => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
-      return res;
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
+    return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data as {
+      price: string,
+      fill_fees: string,
+      filled_amount: string,
+      side: SideEnum,
+      type: string,
+      created_at: number,
     });
   }
 
   // 查询账户资产
   async FetchBalance () {
-    const time = Date.now().toString();
-    const signtmp = this.secret(`GET${FcoinUrl.balance}${time}`);
-    return fetch(FcoinUrl.balance, {
-      method: 'GET',
-      headers: {
-        'FC-ACCESS-KEY': this.UserConfig.Key,
-        'FC-ACCESS-SIGNATURE': signtmp,
-        'FC-ACCESS-TIMESTAMP': time,
-      },
-    }).then(res => res.json()).then((res: FcoinApiRes<CoinHas[]>) => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
-      return res;
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
-    });
+    return this.axios.get(`/accounts/balance`).then(res => res.data as CoinHas[]);
   }
 
   // 查询所有订单
-  async FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', after = '', before = '') {
-    const time = Date.now().toString();
-    let url;
-    if (before) {
-      url = `${FcoinUrl.order}?before=${before}&limit=${limit}&states=${states}&symbol=${symbol}`;
-    } else if (after) {
-      url = `${FcoinUrl.order}?after=${after}&limit=${limit}&states=${states}&symbol=${symbol}`;
-    } else {
-      url = `${FcoinUrl.order}?limit=${limit}&states=${states}&symbol=${symbol}`;
-    }
-
-    const signtmp = this.secret(`GET${url}${time}`);
-    return fetch(url, {
-      method: 'GET',
-      headers: {
-        'FC-ACCESS-KEY': this.UserConfig.Key,
-        'FC-ACCESS-SIGNATURE': signtmp,
-        'FC-ACCESS-TIMESTAMP': time,
-      },
-    }).then(res => res.json()).then(res => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
-      return res;
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
-    });
+  async FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', time?: { value: number; type: 'after' | 'before' }) {
+    const params = { symbol, states, limit };
+    if (time) Object.assign(params, { [time.type]: time.value.toString() });
+    return this.axios.get('/orders', { params }).then(res => res.data as OrderResult[]);
   }
 
   // 获取指定 id 的订单
   async FetchOrderById (id: string) {
-    const time = Date.now().toString();
-    const url = `${FcoinUrl.order}/${id}`;
-    const signtmp = this.secret(`GET${url}${time}`);
-    return fetch(url, {
-      method: 'GET',
-      headers: {
-        'FC-ACCESS-KEY': this.UserConfig.Key,
-        'FC-ACCESS-SIGNATURE': signtmp,
-        'FC-ACCESS-TIMESTAMP': time,
-      },
-    }).then(res => res.json()).then((res: FcoinApiRes<OrderResult>) => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
-      return res;
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
-    });
+    return this.axios.get(`/orders/${id}`).then(res => res.data as OrderResult);
   }
 
   /**
    * 行情接口(ticker)
    */
   async Ticker (symbol: SymbolEnum) {
-    let url = `${FcoinUrl.market_http}/ticker/${symbol}`;
-    return fetch(url, {
-      method: 'GET',
-    }).then(res => res.json()).then((res: FcoinApiRes<{
-      ticker: number[];
-      seq: number;
-      type: string;
-    }>) => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
+    return this.axios.get(`/market/ticker/${symbol}`).then(res => res.data).then(res => {
+      if (res.status) return res as FcoinApiRes<TickerData>;
       const ticker = res.data.ticker;
       return new FcoinApiRes({
         seq: res.data.seq,
@@ -161,8 +125,6 @@ export class FcoinApi {
         OneDayVolume1: ticker[9], // 24小时内基准货币成交量, 如 btcusdt 中 btc 的量
         OneDayVolume2: ticker[10], // 24小时内基准货币成交量, 如 btcusdt 中 usdt 的量
       });
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
     });
   }
 
@@ -170,20 +132,11 @@ export class FcoinApi {
    * 深度查询
    */
   async Depth (symbol: SymbolEnum, deep: DepthLevel) {
-    const url = `${FcoinUrl.market_http}/depth/${deep}/${symbol}`;
-    return fetch(url, {
-      method: 'GET',
-    }).then(res => res.json()).then((res: FcoinApiRes<{
-      bids: number[];
-      asks: number[];
-      ts: number;
-      seq: number;
-      type: string;
-    }>) => {
-      if (res.status) return new FcoinApiRes(null, res, res.msg);
+    return this.axios.get(`/market/depth/${deep}/${symbol}`).then(res => res.data).then(res => {
+      if (res.status) return res as FcoinApiRes<DepthData>;
       const bids: DepthUnit[] = [];
       const asks: DepthUnit[] = [];
-      res.data.bids.forEach((num, index) => {
+      (res.data.bids as number[]).forEach((num, index) => {
         const isVol = Boolean(index % 2);
         const realIndex = Math.floor(index / 2);
         if (!isVol) {
@@ -192,7 +145,7 @@ export class FcoinApi {
           bids[realIndex].vol = num;
         }
       });
-      res.data.asks.forEach((num, index) => {
+      (res.data.asks as number[]).forEach((num, index) => {
         const isVol = Boolean(index % 2);
         const realIndex = Math.floor(index / 2);
         if (!isVol) {
@@ -201,14 +154,12 @@ export class FcoinApi {
           asks[realIndex].vol = num;
         }
       });
-      return new FcoinApiRes({
+      return new FcoinApiRes<DepthData>({
         bids, asks,
         seq: res.data.seq,
         ts: res.data.ts,
         type: res.data.type,
       });
-    }).catch(e => {
-      return new FcoinApiRes(null, { status: 1, e }, e + '');
     });
   }
 

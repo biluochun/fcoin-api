@@ -65,4 +65,5 @@ class FcoinApiRes {
     }
 }
 exports.FcoinApiRes = FcoinApiRes;
+;
 //# sourceMappingURL=types.js.map

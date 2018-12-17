@@ -1,15 +1,14 @@
 {
   "name": "fcoin-nodejs-api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Use the package, you can use official api easily!",
   "main": "index.js",
   "dependencies": {
-    "node-fetch": "^2.1.2",
+    "axios": "^0.18.0",
     "ws": "^5.2.2"
   },
   "devDependencies": {
     "@types/node": "^10.5.2",
-    "@types/node-fetch": "^2.1.1",
     "@types/ws": "^5.1.2",
     "ts-node": "^4.1.0",
     "tslint": "^5.6.0",

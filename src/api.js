@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
-const node_fetch_1 = tslib_1.__importDefault(require("node-fetch"));
 const crypto_1 = tslib_1.__importDefault(require("crypto"));
+const axios_1 = tslib_1.__importDefault(require("axios"));
 const types_1 = require("./types");
 const _1 = require(".");
-class FcoinApi {
+class FCoinApi {
     constructor(key, secret) {
         this.UserConfig = {
             Key: '',
@@ -13,31 +13,56 @@ class FcoinApi {
         };
         this.UserConfig.Key = key;
         this.UserConfig.Secret = secret;
+        this.axios = axios_1.default.create({
+            baseURL: _1.FCoinUrl.ApiV2,
+            timeout: 10000,
+        });
+        this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
+        this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
+    }
+    transformRequest(request) {
+        const time = Date.now().toString();
+        const data = [];
+        const params = [];
+        const secret = [`${request.method.toLocaleUpperCase()}${request.baseURL}${request.url}`];
+        if (request.data) {
+            for (const arg in request.data)
+                data.push(`${arg}=${request.data[arg]}`);
+            request.data = JSON.stringify(request.data);
+        }
+        for (const arg in request.params)
+            params.push(`${arg}=${request.params[arg]}`);
+        params.sort();
+        data.sort();
+        if (params.length)
+            secret.push(`?${params.join('&')}`);
+        secret.push(`${time}`);
+        secret.push(`${data.join('&')}`);
+        const signtmp = this.secret(secret.join(''));
+        request.headers = Object.assign({}, request.headers, {
+            'FC-ACCESS-KEY': this.UserConfig.Key,
+            'FC-ACCESS-SIGNATURE': signtmp,
+            'FC-ACCESS-TIMESTAMP': time,
+            'Content-Type': 'application/json;charset=UTF-8',
+        });
+        console.log(secret.join(''), request);
+        return request;
+    }
+    transformResponse(res) {
+        if (res.data.status) {
+            res.data = new types_1.FcoinApiRes(null, res.data, res.data.msg);
+        }
+        return res;
+    }
+    onRejected(err) {
+        return Promise.resolve({ data: new types_1.FcoinApiRes(null, { status: 1, err }, err + '') });
     }
     /**
      * 创建订单（买卖）
      */
     OrderCreate(symbol, side, type = 'limit', price, amount, exchange) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const time = Date.now().toString();
-            const signtmp = this.secret(`POST${_1.FcoinUrl.order}${time}amount=${amount}&exchange=${exchange}&price=${price}&side=${side}&symbol=${symbol}&type=${type}`);
-            // 发送新建订单的请求
-            return node_fetch_1.default(_1.FcoinUrl.order, {
-                method: 'post',
-                headers: {
-                    'FC-ACCESS-KEY': this.UserConfig.Key,
-                    'FC-ACCESS-SIGNATURE': signtmp,
-                    'FC-ACCESS-TIMESTAMP': time,
-                    'Content-Type': 'application/json;charset=UTF-8',
-                },
-                body: JSON.stringify({ type, side, amount, price, symbol, exchange }),
-            }).then(res => res.json()).then(res => {
-                if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
-                return res;
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
-            });
+            return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data);
         });
     }
     /**
@@ -45,99 +70,28 @@ class FcoinApi {
      */
     OrderCancel(id) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const time = Date.now().toString();
-            const url = `${_1.FcoinUrl.order}/${id}/submit-cancel`;
-            const signtmp = this.secret(`POST${url}${time}`);
-            // 发送新建订单的请求
-            return node_fetch_1.default(url, {
-                method: 'post',
-                headers: {
-                    'FC-ACCESS-KEY': this.UserConfig.Key,
-                    'FC-ACCESS-SIGNATURE': signtmp,
-                    'FC-ACCESS-TIMESTAMP': time,
-                    'Content-Type': 'application/json;charset=UTF-8',
-                },
-            }).then(res => res.json()).then(res => {
-                if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
-                return res;
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
-            });
+            return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data);
         });
     }
     // 查询账户资产
     FetchBalance() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const time = Date.now().toString();
-            const signtmp = this.secret(`GET${_1.FcoinUrl.balance}${time}`);
-            return node_fetch_1.default(_1.FcoinUrl.balance, {
-                method: 'GET',
-                headers: {
-                    'FC-ACCESS-KEY': this.UserConfig.Key,
-                    'FC-ACCESS-SIGNATURE': signtmp,
-                    'FC-ACCESS-TIMESTAMP': time,
-                },
-            }).then(res => res.json()).then((res) => {
-                if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
-                return res;
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
-            });
+            return this.axios.get(`/accounts/balance`).then(res => res.data);
         });
     }
     // 查询所有订单
-    FetchOrders(symbol, states = 'submitted,filled', limit = '100', after = '', before = '') {
+    FetchOrders(symbol, states = 'submitted,filled', limit = '100', time) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const time = Date.now().toString();
-            let url;
-            if (before) {
-                url = `${_1.FcoinUrl.order}?before=${before}&limit=${limit}&states=${states}&symbol=${symbol}`;
-            }
-            else if (after) {
-                url = `${_1.FcoinUrl.order}?after=${after}&limit=${limit}&states=${states}&symbol=${symbol}`;
-            }
-            else {
-                url = `${_1.FcoinUrl.order}?limit=${limit}&states=${states}&symbol=${symbol}`;
-            }
-            const signtmp = this.secret(`GET${url}${time}`);
-            return node_fetch_1.default(url, {
-                method: 'GET',
-                headers: {
-                    'FC-ACCESS-KEY': this.UserConfig.Key,
-                    'FC-ACCESS-SIGNATURE': signtmp,
-                    'FC-ACCESS-TIMESTAMP': time,
-                },
-            }).then(res => res.json()).then(res => {
-                if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
-                return res;
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
-            });
+            const params = { symbol, states, limit };
+            if (time)
+                Object.assign(params, { [time.type]: time.value.toString() });
+            return this.axios.get('/orders', { params }).then(res => res.data);
         });
     }
     // 获取指定 id 的订单
     FetchOrderById(id) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const time = Date.now().toString();
-            const url = `${_1.FcoinUrl.order}/${id}`;
-            const signtmp = this.secret(`GET${url}${time}`);
-            return node_fetch_1.default(url, {
-                method: 'GET',
-                headers: {
-                    'FC-ACCESS-KEY': this.UserConfig.Key,
-                    'FC-ACCESS-SIGNATURE': signtmp,
-                    'FC-ACCESS-TIMESTAMP': time,
-                },
-            }).then(res => res.json()).then((res) => {
-                if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
-                return res;
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
-            });
+            return this.axios.get(`/orders/${id}`).then(res => res.data);
         });
     }
     /**
@@ -145,12 +99,9 @@ class FcoinApi {
      */
     Ticker(symbol) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            let url = `${_1.FcoinUrl.market_http}/ticker/${symbol}`;
-            return node_fetch_1.default(url, {
-                method: 'GET',
-            }).then(res => res.json()).then((res) => {
+            return this.axios.get(`/market/ticker/${symbol}`).then(res => res.data).then(res => {
                 if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
+                    return res;
                 const ticker = res.data.ticker;
                 return new types_1.FcoinApiRes({
                     seq: res.data.seq,
@@ -167,8 +118,6 @@ class FcoinApi {
                     OneDayVolume1: ticker[9],
                     OneDayVolume2: ticker[10],
                 });
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
             });
         });
     }
@@ -177,12 +126,9 @@ class FcoinApi {
      */
     Depth(symbol, deep) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const url = `${_1.FcoinUrl.market_http}/depth/${deep}/${symbol}`;
-            return node_fetch_1.default(url, {
-                method: 'GET',
-            }).then(res => res.json()).then((res) => {
+            return this.axios.get(`/market/depth/${deep}/${symbol}`).then(res => res.data).then(res => {
                 if (res.status)
-                    return new types_1.FcoinApiRes(null, res, res.msg);
+                    return res;
                 const bids = [];
                 const asks = [];
                 res.data.bids.forEach((num, index) => {
@@ -211,8 +157,6 @@ class FcoinApi {
                     ts: res.data.ts,
                     type: res.data.type,
                 });
-            }).catch(e => {
-                return new types_1.FcoinApiRes(null, { status: 1, e }, e + '');
             });
         });
     }
@@ -226,5 +170,5 @@ class FcoinApi {
         return str;
     }
 }
-exports.FcoinApi = FcoinApi;
+exports.FCoinApi = FCoinApi;
 //# sourceMappingURL=api.js.map

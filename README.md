@@ -10,10 +10,10 @@ npm install fcoin-nodejs-api
 ```
 # Examples
 ```ts
-import { FcoinWebSocket, FcoinApi } from 'fcoin-nodejs-api';
+import { FcoinWebSocket, FCoinApi } from 'fcoin-nodejs-api';
 
 const ws = new FcoinWebSocket();
-const api = new FcoinApi('your-key', 'your-secret');
+const api = new FCoinApi('your-key', 'your-secret');
 
 ws.OnTicker('ftusdt', (data) => {
     console.log(data);

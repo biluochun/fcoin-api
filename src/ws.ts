@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { SymbolEnum, WsResponse, BrocastType, WatchTicker, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, DepthUnit, WsResponseAllTickers } from './types';
-import { FcoinUrl } from '.';
+import { FCoinUrl } from '.';
 
 /**
  * topic 表示订阅的主题
@@ -36,7 +36,7 @@ export class FcoinWebSocket {
   };
 
   constructor () {
-    this.ws = new WebSocket(FcoinUrl.market);
+    this.ws = new WebSocket(FCoinUrl.market);
     this.wsOpen = new Promise(resolve => {
       this.ws.on('open', resolve);
     });

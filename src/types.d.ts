@@ -168,3 +168,25 @@ export interface OrderResult {
     created_at: number;
     source: string;
 }
+export interface TickerData {
+    seq: number;
+    type: string;
+    LastPrice: number;
+    LastVolume: number;
+    MaxBuyPrice: number;
+    MaxBuyVolume: number;
+    MinSalePrice: number;
+    MinSaleVolume: number;
+    BeforeH24Price: number;
+    HighestH24Price: number;
+    LowestH24Price: number;
+    OneDayVolume1: number;
+    OneDayVolume2: number;
+}
+export interface DepthData {
+    bids: DepthUnit[];
+    asks: DepthUnit[];
+    seq: number;
+    ts: number;
+    type: string;
+}

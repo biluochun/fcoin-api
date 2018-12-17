@@ -1,4 +1,4 @@
 import { FcoinWebSocket } from './src/ws';
-import { FcoinApi } from './src/api';
+import { FCoinApi } from './src/api';
 
-export { FcoinWebSocket, FcoinApi };
+export { FcoinWebSocket, FCoinApi };

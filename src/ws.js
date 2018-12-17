@@ -33,7 +33,7 @@ class FcoinWebSocket {
             ts: Date.now(),
             gap: 0,
         };
-        this.ws = new ws_1.default(_1.FcoinUrl.market);
+        this.ws = new ws_1.default(_1.FCoinUrl.market);
         this.wsOpen = new Promise(resolve => {
             this.ws.on('open', resolve);
         });
