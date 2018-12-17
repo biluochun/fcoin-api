@@ -1,12 +1,8 @@
-import { AxiosInstance } from 'axios';
 import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData } from './types';
 export declare class FCoinApi {
     private UserConfig;
-    axios: AxiosInstance;
     constructor(key: string, secret: string);
-    private transformRequest;
-    private transformResponse;
-    private onRejected;
+    private fetch;
     /**
      * 创建订单（买卖）
      */

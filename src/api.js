@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const crypto_1 = tslib_1.__importDefault(require("crypto"));
-const axios_1 = tslib_1.__importDefault(require("axios"));
+const node_fetch_1 = tslib_1.__importDefault(require("node-fetch"));
 const types_1 = require("./types");
 const _1 = require(".");
+const urijs_1 = tslib_1.__importDefault(require("urijs"));
 class FCoinApi {
     constructor(key, secret) {
         this.UserConfig = {
@@ -13,55 +14,64 @@ class FCoinApi {
         };
         this.UserConfig.Key = key;
         this.UserConfig.Secret = secret;
-        this.axios = axios_1.default.create({
-            baseURL: _1.FCoinUrl.ApiV2,
-            timeout: 10000,
+        // this.axios = Axios.create({
+        //   baseURL: FCoinUrl.ApiV2,
+        //   timeout: 10000,
+        // });
+        // this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
+        // this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
+    }
+    fetch(method, urlTo, body, args) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const time = Date.now().toString();
+            const data = [];
+            const params = [];
+            const secret = [`${method}${urlTo}`];
+            const url = urijs_1.default(urlTo);
+            if (body) {
+                for (const arg in body)
+                    data.push(`${arg}=${body[arg]}`);
+                body = JSON.stringify(body);
+            }
+            else {
+                body = undefined;
+            }
+            for (const arg in args)
+                params.push(`${arg}=${args[arg]}`);
+            params.sort();
+            data.sort();
+            if (params.length) {
+                secret.push(`?${params.join('&')}`);
+                url.setQuery(args);
+            }
+            secret.push(`${time}`);
+            secret.push(`${data.join('&')}`);
+            const signtmp = this.secret(secret.join(''));
+            const headers = {
+                'FC-ACCESS-KEY': this.UserConfig.Key,
+                'FC-ACCESS-SIGNATURE': signtmp,
+                'FC-ACCESS-TIMESTAMP': time,
+                'Content-Type': 'application/json;charset=UTF-8',
+            };
+            return new Promise(resolve => {
+                node_fetch_1.default(url.href(), {
+                    method,
+                    body,
+                    headers,
+                }).then(res => res.json()).then(res => {
+                    if (res.status)
+                        return resolve(new types_1.FcoinApiRes(null, res, res.msg));
+                    return resolve(res);
+                });
+            });
         });
-        this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
-        this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
-    }
-    transformRequest(request) {
-        const time = Date.now().toString();
-        const data = [];
-        const params = [];
-        const secret = [`${request.method.toLocaleUpperCase()}${request.baseURL}${request.url}`];
-        if (request.data) {
-            for (const arg in request.data)
-                data.push(`${arg}=${request.data[arg]}`);
-            request.data = JSON.stringify(request.data);
-        }
-        for (const arg in request.params)
-            params.push(`${arg}=${request.params[arg]}`);
-        params.sort();
-        data.sort();
-        if (params.length)
-            secret.push(`?${params.join('&')}`);
-        secret.push(`${time}`);
-        secret.push(`${data.join('&')}`);
-        const signtmp = this.secret(secret.join(''));
-        request.headers = Object.assign({}, request.headers, {
-            'FC-ACCESS-KEY': this.UserConfig.Key,
-            'FC-ACCESS-SIGNATURE': signtmp,
-            'FC-ACCESS-TIMESTAMP': time,
-            'Content-Type': 'application/json;charset=UTF-8',
-        });
-        return request;
-    }
-    transformResponse(res) {
-        if (res.data.status) {
-            res.data = new types_1.FcoinApiRes(null, res.data, res.data.msg);
-        }
-        return res;
-    }
-    onRejected(err) {
-        return Promise.resolve({ data: new types_1.FcoinApiRes(null, { status: 1, err }, err + '') });
     }
     /**
      * 创建订单（买卖）
      */
     OrderCreate(symbol, side, type = 'limit', price, amount, exchange) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data);
+            return this.fetch('POST', `${_1.FCoinUrl.ApiV2}/orders`, { symbol, side, type, price, amount, exchange }).then(res => res);
         });
     }
     /**
@@ -69,13 +79,13 @@ class FCoinApi {
      */
     OrderCancel(id) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data);
+            return this.fetch('POST', `${_1.FCoinUrl.ApiV2}/orders/${id}/submit-cancel`).then(res => res);
         });
     }
     // 查询账户资产
     FetchBalance() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.get(`/accounts/balance`).then(res => res.data);
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/accounts/balance`).then(res => res);
         });
     }
     // 查询所有订单
@@ -84,13 +94,13 @@ class FCoinApi {
             const params = { symbol, states, limit };
             if (time)
                 Object.assign(params, { [time.type]: time.value.toString() });
-            return this.axios.get('/orders', { params }).then(res => res.data);
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/orders`, null, params).then(res => res);
         });
     }
     // 获取指定 id 的订单
     FetchOrderById(id) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.get(`/orders/${id}`).then(res => res.data);
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/orders/${id}`).then(res => res);
         });
     }
     /**
@@ -98,7 +108,7 @@ class FCoinApi {
      */
     Ticker(symbol) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.get(`/market/ticker/${symbol}`).then(res => res.data).then(res => {
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/market/ticker/${symbol}`).then(res => {
                 if (res.status)
                     return res;
                 const ticker = res.data.ticker;
@@ -125,7 +135,7 @@ class FCoinApi {
      */
     Depth(symbol, deep) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.axios.get(`/market/depth/${deep}/${symbol}`).then(res => res.data).then(res => {
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/market/depth/${deep}/${symbol}`).then(res => {
                 if (res.status)
                     return res;
                 const bids = [];

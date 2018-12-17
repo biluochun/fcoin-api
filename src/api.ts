@@ -1,8 +1,8 @@
 import crypto from 'crypto';
-import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import fetch from 'node-fetch';
 import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData } from './types';
 import { FCoinUrl } from '.';
-
+import URI from 'urijs';
 
 export class FCoinApi {
   private UserConfig = {
@@ -10,71 +10,74 @@ export class FCoinApi {
     Secret: '',
   };
 
-  axios: AxiosInstance;
-
   constructor (key: string, secret: string) {
     this.UserConfig.Key = key;
     this.UserConfig.Secret = secret;
-    this.axios = Axios.create({
-      baseURL: FCoinUrl.ApiV2,
-      timeout: 10000,
-    });
-    this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
-    this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
+    // this.axios = Axios.create({
+    //   baseURL: FCoinUrl.ApiV2,
+    //   timeout: 10000,
+    // });
+    // this.axios.interceptors.request.use((request) => this.transformRequest(request), (err) => this.onRejected(err));
+    // this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
   }
 
-  private transformRequest (request: AxiosRequestConfig): AxiosRequestConfig {
+  private async fetch (method: 'POST' | 'GET' | 'DELETE', urlTo: string, body?: any, args?: any): Promise<FcoinApiRes<any>> {
     const time = Date.now().toString();
     const data = [] as string[];
     const params = [] as string[];
-    const secret = [`${request.method!.toLocaleUpperCase()}${request.baseURL}${request.url}`];
+    const secret = [`${method}${urlTo}`];
+    const url = URI(urlTo);
 
-    if (request.data) {
-      for (const arg in request.data) data.push(`${arg}=${request.data[arg]}`);
-      request.data = JSON.stringify(request.data);
+    if (body) {
+      for (const arg in body) data.push(`${arg}=${body[arg]}`);
+      body = JSON.stringify(body);
+    } else {
+      body = undefined;
     }
 
-    for (const arg in request.params) params.push(`${arg}=${request.params[arg]}`);
+    for (const arg in args) params.push(`${arg}=${args[arg]}`);
     params.sort();
     data.sort();
 
-    if (params.length) secret.push(`?${params.join('&')}`);
+    if (params.length) {
+      secret.push(`?${params.join('&')}`);
+      url.setQuery(args);
+    }
     secret.push(`${time}`);
     secret.push(`${data.join('&')}`);
     const signtmp = this.secret(secret.join(''));
 
-    request.headers = Object.assign({}, request.headers, {
+    const headers = {
       'FC-ACCESS-KEY': this.UserConfig.Key,
       'FC-ACCESS-SIGNATURE': signtmp,
       'FC-ACCESS-TIMESTAMP': time,
       'Content-Type': 'application/json;charset=UTF-8',
+    };
+
+    return new Promise<FcoinApiRes<any>>(resolve => {
+      fetch(url.href(), {
+        method,
+        body,
+        headers,
+      }).then(res => res.json()).then(res => {
+        if (res.status) return resolve(new FcoinApiRes(null, res, res.msg));
+        return resolve(res);
+      });
     });
-    return request;
-  }
-
-  private transformResponse (res: AxiosResponse): AxiosResponse {
-    if (res.data.status) {
-      res.data = new FcoinApiRes(null, res.data, res.data.msg);
-    }
-    return res;
-  }
-
-  private onRejected (err: any) {
-    return Promise.resolve({ data: new FcoinApiRes(null, { status: 1, err }, err + '') });
   }
 
   /**
    * 创建订单（买卖）
    */
   async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string) {
-    return this.axios.post('/orders', { symbol, side, type, price, amount, exchange }).then(res => res.data as FcoinApiRes<string>);
+    return this.fetch('POST', `${FCoinUrl.ApiV2}/orders`, { symbol, side, type, price, amount, exchange }).then(res => res as FcoinApiRes<string>);
   }
 
   /**
    * 撤销订单（买卖）
    */
   async OrderCancel (id: string) {
-    return this.axios.post(`/orders/${id}/submit-cancel`).then(res => res.data as FcoinApiRes<{
+    return this.fetch('POST', `${FCoinUrl.ApiV2}/orders/${id}/submit-cancel`).then(res => res as FcoinApiRes<{
       price: string,
       fill_fees: string,
       filled_amount: string,
@@ -86,26 +89,26 @@ export class FCoinApi {
 
   // 查询账户资产
   async FetchBalance () {
-    return this.axios.get(`/accounts/balance`).then(res => res.data as FcoinApiRes<CoinHas[]>);
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/accounts/balance`).then(res => res as FcoinApiRes<CoinHas[]>);
   }
 
   // 查询所有订单
   async FetchOrders (symbol: SymbolEnum, states = 'submitted,filled', limit = '100', time?: { value: number; type: 'after' | 'before' }) {
     const params = { symbol, states, limit };
     if (time) Object.assign(params, { [time.type]: time.value.toString() });
-    return this.axios.get('/orders', { params }).then(res => res.data as FcoinApiRes<OrderResult[]>);
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/orders`, null, params).then(res => res as FcoinApiRes<OrderResult[]>);
   }
 
   // 获取指定 id 的订单
   async FetchOrderById (id: string) {
-    return this.axios.get(`/orders/${id}`).then(res => res.data as FcoinApiRes<OrderResult>);
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/orders/${id}`).then(res => res as FcoinApiRes<OrderResult>);
   }
 
   /**
    * 行情接口(ticker)
    */
   async Ticker (symbol: SymbolEnum) {
-    return this.axios.get(`/market/ticker/${symbol}`).then(res => res.data).then(res => {
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/market/ticker/${symbol}`).then(res => {
       if (res.status) return res as FcoinApiRes<TickerData>;
       const ticker = res.data.ticker;
       return new FcoinApiRes({
@@ -130,7 +133,7 @@ export class FCoinApi {
    * 深度查询
    */
   async Depth (symbol: SymbolEnum, deep: DepthLevel) {
-    return this.axios.get(`/market/depth/${deep}/${symbol}`).then(res => res.data).then(res => {
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/market/depth/${deep}/${symbol}`).then(res => {
       if (res.status) return res as FcoinApiRes<DepthData>;
       const bids: DepthUnit[] = [];
       const asks: DepthUnit[] = [];
