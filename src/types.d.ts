@@ -164,6 +164,8 @@ export interface OrderResult {
     state: OrderState;
     executed_value: string;
     fill_fees: string;
+    fees_income: string;
+    exchange: string;
     filled_amount: string;
     created_at: number;
     source: string;

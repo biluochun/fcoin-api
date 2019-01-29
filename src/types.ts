@@ -190,6 +190,8 @@ export interface OrderResult {
   state: OrderState;
   executed_value: string;
   fill_fees: string;
+  fees_income: string; // 返手续费
+  exchange: string; // 专区
   filled_amount: string;
   created_at: number;
   source: string;
