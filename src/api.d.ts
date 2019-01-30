@@ -1,4 +1,4 @@
-import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance } from './types';
 export declare class FCoinApi {
     private UserConfig;
     constructor(key: string, secret: string);
@@ -6,7 +6,7 @@ export declare class FCoinApi {
     /**
      * 创建订单（买卖）
      */
-    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string, exchange: string): Promise<FcoinApiRes<string>>;
+    OrderCreate(symbol: SymbolEnum, side: SideEnum, type: string | undefined, price: string, amount: string, exchange: string, account_type?: string): Promise<FcoinApiRes<string>>;
     /**
      * 撤销订单（买卖）
      */
@@ -23,6 +23,8 @@ export declare class FCoinApi {
         value: number;
         type: 'after' | 'before';
     }): Promise<FcoinApiRes<OrderResult[]>>;
+    FetchLeveragedBalances(): Promise<FcoinApiRes<LeveragedBalance[]>>;
+    FetchLeveragedBalance(account_type: string): Promise<FcoinApiRes<LeveragedBalance>>;
     FetchOrderById(id: string): Promise<FcoinApiRes<OrderResult>>;
     /**
      * 行情接口(ticker)

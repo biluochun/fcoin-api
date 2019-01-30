@@ -192,3 +192,38 @@ export interface DepthData {
     ts: number;
     type: string;
 }
+export declare enum LeveragedBalanceState {
+    open = "open",
+    close = "close",
+    normal = "normal",
+    blow_up = "blow_up",
+    overrun = "overrun"
+}
+export declare const LeveragedBalanceStateText: {
+    open: string;
+    close: string;
+    normal: string;
+    blow_up: string;
+    overrun: string;
+};
+export interface LeveragedBalance {
+    open: boolean;
+    leveraged_account_type: string;
+    base: string;
+    quote: string;
+    available_base_currency_amount: string;
+    frozen_base_currency_amount: string;
+    available_quote_currency_amount: string;
+    frozen_quote_currency_amount: string;
+    available_base_currency_loan_amount: string;
+    available_quote_currency_loan_amount: string;
+    blow_up_price: string;
+    risk_rate: string;
+    state: {
+        open: boolean;
+        close: boolean;
+        normal: boolean;
+        blow_up: boolean;
+        overrun: boolean;
+    };
+}

@@ -220,3 +220,41 @@ export interface DepthData {
   ts: number;
   type: string;
 };
+
+export enum LeveragedBalanceState {
+  open = 'open',
+  close = 'close',
+  normal = 'normal',
+  blow_up = 'blow_up',
+  overrun = 'overrun',
+}
+
+export const LeveragedBalanceStateText = {
+  open: '已开通-未发生借贷',
+  close: '已关闭',
+  normal: '已借贷-风险率正常',
+  blow_up: '已爆仓',
+  overrun: '已穿仓',
+}
+export interface LeveragedBalance {
+  open: boolean;                                     // 是否已经开通该类型杠杆账户. true:已开通;false:未开通
+  leveraged_account_type: string;              // 杠杆账户类型
+  base: string;                                    // 基准币种
+  quote: string;                                  // 计价币种
+  available_base_currency_amount: string;      // 可用的基准币种资产
+  frozen_base_currency_amount: string;               // 冻结的基准币种资产
+  available_quote_currency_amount: string;      // 可用的计价币种资产
+  frozen_quote_currency_amount: string;              // 冻结的计价币种资产
+  available_base_currency_loan_amount: string;   // 可借的基准币种数量
+  available_quote_currency_loan_amount: string; // 可借的计价币种数量
+  blow_up_price: string;                            // 爆仓价
+  risk_rate: string;                              // 爆仓风险率
+  // 账户状态. close 已关闭;open 已开通-未发生借贷;normal 已借贷-风险率正常;blow_up 已爆仓;overrun 已穿仓", allowableValues = "close,open,normal,blow_up,overrun")
+  state: {
+    open: boolean;
+    close: boolean;
+    normal: boolean;
+    blow_up: boolean;
+    overrun: boolean;
+  };
+}

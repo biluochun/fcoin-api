@@ -18,15 +18,18 @@ ws.Heartbeat();
 
 const api = new FCoinApi('', '');
 
-api.OrderCancel('U86EEkrpyaWH32Y9mdf75NP2a5hLp80rOMAAvjN_nY9oof95s-U4YduzFXr_ZorCT-_WhXPWNmqfTuHLgoCVmQ==').then(console.log);
+// api.OrderCancel('U86EEkrpyaWH32Y9mdf75NP2a5hLp80rOMAAvjN_nY9oof95s-U4YduzFXr_ZorCT-_WhXPWNmqfTuHLgoCVmQ==').then(console.log);
 
 api.FetchBalance().then(console.log);
 
-api.Ticker('ftusdt').then(console.log);
+// api.Ticker('ftusdt').then(console.log);
 
-api.Depth('ftusdt', DepthLevel.L20).then(console.log);
+// api.Depth('ftusdt', DepthLevel.L20).then(console.log);
 
-api.FetchOrders('ftusdt', 'submitted', '100', {
-  value: Date.now(),
-  type: 'before',
-}).then(console.log);
+// api.FetchOrders('ftusdt', 'submitted', '100', {
+//   value: Date.now(),
+//   type: 'before',
+// }).then(console.log);
+
+// api.FetchLeveragedBalances().then(console.log);
+// api.FetchLeveragedBalance('eosusdt').then(console.log);

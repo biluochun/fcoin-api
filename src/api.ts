@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import fetch from 'node-fetch';
-import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance } from './types';
 import { FCoinUrl } from '.';
 import { URL } from 'url';
 
@@ -61,6 +61,7 @@ export class FCoinApi {
         body,
         headers,
       }).then(res => res.json()).then(res => {
+        if (res.status === 'ok') res.status = 0; // 强制统一。这破FCoin的规范
         if (res.status) return resolve(new FcoinApiRes(null, res, res.msg));
         return resolve(res);
       });
@@ -70,8 +71,10 @@ export class FCoinApi {
   /**
    * 创建订单（买卖）
    */
-  async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string) {
-    return this.fetch('POST', `${FCoinUrl.ApiV2}/orders`, { symbol, side, type, price, amount, exchange }).then(res => res as FcoinApiRes<string>);
+  async OrderCreate (symbol: SymbolEnum, side: SideEnum, type = 'limit', price: string, amount: string, exchange: string, account_type?: string) {
+    const data: any = { symbol, side, type, price, amount, exchange };
+    if (account_type) data.account_type = account_type;
+    return this.fetch('POST', `${FCoinUrl.ApiV2}/orders`, data).then(res => res as FcoinApiRes<string>);
   }
 
   /**
@@ -98,6 +101,46 @@ export class FCoinApi {
     const params = { symbol, states, limit };
     if (time) Object.assign(params, { [time.type]: time.value.toString() });
     return this.fetch('GET', `${FCoinUrl.ApiV2}/orders`, null, params).then(res => res as FcoinApiRes<OrderResult[]>);
+  }
+
+  // 查询杠杠账户信息
+  async FetchLeveragedBalances (): Promise<FcoinApiRes<LeveragedBalance[]>> {
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/broker/leveraged_accounts`, null, null).then(res => {
+      if (res.status) return res as FcoinApiRes<LeveragedBalance[]>;
+      return new FcoinApiRes(res.data.map((data: any) => {
+        const states = (data.state as string || '').split(',');
+        data.state = {
+          open: false,
+          close: false,
+          normal: false,
+          blow_up: false,
+          overrun: false,
+        };
+        states.forEach(state => {
+          data.state[state] = true;
+        });
+        return data;
+      }));
+    });
+  }
+
+  // 查询杠杠账户指定币种信息
+  async FetchLeveragedBalance (account_type: string): Promise<FcoinApiRes<LeveragedBalance>> {
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/broker/leveraged_accounts/account`, null, { account_type }).then(res => {
+      if (res.status) return res as FcoinApiRes<LeveragedBalance>;
+      const states = (res.data.state as string || '').split(',');
+      res.data.state = {
+        open: false,
+        close: false,
+        normal: false,
+        blow_up: false,
+        overrun: false,
+      };
+      states.forEach(state => {
+        res.data.state[state] = true;
+      });
+      return new FcoinApiRes(res.data);
+    });
   }
 
   // 获取指定 id 的订单

@@ -66,4 +66,19 @@ class FcoinApiRes {
 }
 exports.FcoinApiRes = FcoinApiRes;
 ;
+var LeveragedBalanceState;
+(function (LeveragedBalanceState) {
+    LeveragedBalanceState["open"] = "open";
+    LeveragedBalanceState["close"] = "close";
+    LeveragedBalanceState["normal"] = "normal";
+    LeveragedBalanceState["blow_up"] = "blow_up";
+    LeveragedBalanceState["overrun"] = "overrun";
+})(LeveragedBalanceState = exports.LeveragedBalanceState || (exports.LeveragedBalanceState = {}));
+exports.LeveragedBalanceStateText = {
+    open: '已开通-未发生借贷',
+    close: '已关闭',
+    normal: '已借贷-风险率正常',
+    blow_up: '已爆仓',
+    overrun: '已穿仓',
+};
 //# sourceMappingURL=types.js.map

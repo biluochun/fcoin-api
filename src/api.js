@@ -59,6 +59,8 @@ class FCoinApi {
                     body,
                     headers,
                 }).then(res => res.json()).then(res => {
+                    if (res.status === 'ok')
+                        res.status = 0; // 强制统一。这破FCoin的规范
                     if (res.status)
                         return resolve(new types_1.FcoinApiRes(null, res, res.msg));
                     return resolve(res);
@@ -69,9 +71,12 @@ class FCoinApi {
     /**
      * 创建订单（买卖）
      */
-    OrderCreate(symbol, side, type = 'limit', price, amount, exchange) {
+    OrderCreate(symbol, side, type = 'limit', price, amount, exchange, account_type) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.fetch('POST', `${_1.FCoinUrl.ApiV2}/orders`, { symbol, side, type, price, amount, exchange }).then(res => res);
+            const data = { symbol, side, type, price, amount, exchange };
+            if (account_type)
+                data.account_type = account_type;
+            return this.fetch('POST', `${_1.FCoinUrl.ApiV2}/orders`, data).then(res => res);
         });
     }
     /**
@@ -95,6 +100,50 @@ class FCoinApi {
             if (time)
                 Object.assign(params, { [time.type]: time.value.toString() });
             return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/orders`, null, params).then(res => res);
+        });
+    }
+    // 查询杠杠账户信息
+    FetchLeveragedBalances() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/broker/leveraged_accounts`, null, null).then(res => {
+                if (res.status)
+                    return res;
+                return new types_1.FcoinApiRes(res.data.map((data) => {
+                    const states = (data.state || '').split(',');
+                    data.state = {
+                        open: false,
+                        close: false,
+                        normal: false,
+                        blow_up: false,
+                        overrun: false,
+                    };
+                    states.forEach(state => {
+                        data.state[state] = true;
+                    });
+                    return data;
+                }));
+            });
+        });
+    }
+    // 查询杠杠账户指定币种信息
+    FetchLeveragedBalance(account_type) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/broker/leveraged_accounts/account`, null, { account_type }).then(res => {
+                if (res.status)
+                    return res;
+                const states = (res.data.state || '').split(',');
+                res.data.state = {
+                    open: false,
+                    close: false,
+                    normal: false,
+                    blow_up: false,
+                    overrun: false,
+                };
+                states.forEach(state => {
+                    res.data.state[state] = true;
+                });
+                return new types_1.FcoinApiRes(res.data);
+            });
         });
     }
     // 获取指定 id 的订单
