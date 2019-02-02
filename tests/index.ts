@@ -1,7 +1,7 @@
 import { FcoinWebSocket } from '../src/ws';
 import { FCoinApi } from '../src/api';
 import { SideEnum, DepthLevel } from '../src/types';
-import HttpsProxyAgent from 'https-proxy-agent';
+const HttpsProxyAgent = require('https-proxy-agent');
 import fetch from 'node-fetch';
 
 const agent = new HttpsProxyAgent({
