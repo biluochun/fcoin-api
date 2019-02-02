@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import WebSocket, { ClientOptions } from 'ws';
 import { SymbolEnum, WsResponse, BrocastType, WatchTicker, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, DepthUnit, WsResponseAllTickers } from './types';
 import { FCoinUrl } from '.';
 
@@ -35,8 +35,8 @@ export class FcoinWebSocket {
     gap: 0,
   };
 
-  constructor () {
-    this.ws = new WebSocket(FCoinUrl.market);
+  constructor (options?: ClientOptions) {
+    this.ws = new WebSocket(FCoinUrl.market, options);
     this.wsOpen = new Promise(resolve => {
       this.ws.on('open', resolve);
     });

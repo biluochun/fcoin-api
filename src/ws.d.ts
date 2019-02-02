@@ -1,3 +1,4 @@
+import { ClientOptions } from 'ws';
 import { SymbolEnum, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, WsResponseAllTickers } from './types';
 /**
  * topic 表示订阅的主题
@@ -28,7 +29,7 @@ export declare class FcoinWebSocket {
         ts: number;
         gap: number;
     };
-    constructor();
+    constructor(options?: ClientOptions);
     Heartbeat(): Promise<void>;
     /**
      * 监听交易对的数据
