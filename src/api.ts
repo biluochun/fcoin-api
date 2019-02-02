@@ -11,7 +11,7 @@ export class FCoinApi {
   };
   private Agent = undefined;
 
-  constructor (key: string, secret: string, agent: any) {
+  constructor (key: string, secret: string, agent?: any) {
     this.UserConfig.Key = key;
     this.UserConfig.Secret = secret;
     this.Agent = agent;

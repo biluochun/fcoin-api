@@ -2,7 +2,7 @@ import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, De
 export declare class FCoinApi {
     private UserConfig;
     private Agent;
-    constructor(key: string, secret: string, agent: any);
+    constructor(key: string, secret: string, agent?: any);
     private fetch;
     /**
      * 创建订单（买卖）
