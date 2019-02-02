@@ -207,6 +207,7 @@ class FcoinWebSocket {
     }
     Close() {
         this.ws.close();
+        clearInterval(this.LastHeartbeat.timer);
         delete this.ws;
     }
 }
