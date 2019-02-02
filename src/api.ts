@@ -67,6 +67,9 @@ export class FCoinApi {
         if (res.status === 'ok') res.status = 0; // 强制统一。这破FCoin的规范
         if (res.status) return resolve(new FcoinApiRes(null, res, res.msg));
         return resolve(res);
+      }).catch(reason => {
+        reason.status = -500;
+        return resolve(new FcoinApiRes(null, reason, reason.message));
       });
     });
   }

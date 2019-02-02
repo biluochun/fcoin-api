@@ -67,6 +67,9 @@ class FCoinApi {
                     if (res.status)
                         return resolve(new types_1.FcoinApiRes(null, res, res.msg));
                     return resolve(res);
+                }).catch(reason => {
+                    reason.status = -500;
+                    return resolve(new types_1.FcoinApiRes(null, reason, reason.message));
                 });
             });
         });
