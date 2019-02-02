@@ -32,13 +32,17 @@ class FcoinWebSocket {
             type: 'ping',
             ts: Date.now(),
             gap: 0,
+            timer: 0,
         };
         this.ws = new ws_1.default(_1.FCoinUrl.market, options);
         this.wsOpen = new Promise(resolve => {
             this.ws.on('open', resolve);
         });
-        setInterval(() => this.Heartbeat(), 30000);
         this.Listen();
+    }
+    HeartbeatInit(time) {
+        clearInterval(this.LastHeartbeat.timer);
+        this.LastHeartbeat.timer = setInterval(() => this.Heartbeat(), time);
     }
     Heartbeat() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {

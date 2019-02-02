@@ -33,6 +33,7 @@ export class FcoinWebSocket {
     type: 'ping',
     ts: Date.now(),
     gap: 0,
+    timer: 0 as any,
   };
 
   constructor (options?: ClientOptions) {
@@ -40,8 +41,12 @@ export class FcoinWebSocket {
     this.wsOpen = new Promise(resolve => {
       this.ws.on('open', resolve);
     });
-    setInterval(() => this.Heartbeat(), 30000);
     this.Listen();
+  }
+
+  HeartbeatInit (time: number) {
+    clearInterval(this.LastHeartbeat.timer);
+    this.LastHeartbeat.timer = setInterval(() => this.Heartbeat(), time);
   }
 
   async Heartbeat () {

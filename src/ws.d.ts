@@ -28,8 +28,10 @@ export declare class FcoinWebSocket {
         type: string;
         ts: number;
         gap: number;
+        timer: any;
     };
     constructor(options?: ClientOptions);
+    HeartbeatInit(time: number): void;
     Heartbeat(): Promise<void>;
     /**
      * 监听交易对的数据
