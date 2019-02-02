@@ -7,13 +7,15 @@ const types_1 = require("./types");
 const _1 = require(".");
 const url_1 = require("url");
 class FCoinApi {
-    constructor(key, secret) {
+    constructor(key, secret, agent) {
         this.UserConfig = {
             Key: '',
             Secret: '',
         };
+        this.Agent = undefined;
         this.UserConfig.Key = key;
         this.UserConfig.Secret = secret;
+        this.Agent = agent;
         // this.axios = Axios.create({
         //   baseURL: FCoinUrl.ApiV2,
         //   timeout: 10000,
@@ -58,6 +60,7 @@ class FCoinApi {
                     method,
                     body,
                     headers,
+                    agent: this.Agent,
                 }).then(res => res.json()).then(res => {
                     if (res.status === 'ok')
                         res.status = 0; // 强制统一。这破FCoin的规范

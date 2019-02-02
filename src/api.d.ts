@@ -1,7 +1,8 @@
 import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance } from './types';
 export declare class FCoinApi {
     private UserConfig;
-    constructor(key: string, secret: string);
+    private Agent;
+    constructor(key: string, secret: string, agent: any);
     private fetch;
     /**
      * 创建订单（买卖）
