@@ -28,8 +28,8 @@ export declare class FcoinWebSocket {
         type: string;
         ts: number;
         gap: number;
-        timer: any;
     };
+    LastHeartbeatTimer: any;
     constructor(options?: ClientOptions);
     HeartbeatInit(time: number): void;
     Heartbeat(): Promise<void>;

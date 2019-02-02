@@ -33,8 +33,8 @@ export class FcoinWebSocket {
     type: 'ping',
     ts: Date.now(),
     gap: 0,
-    timer: 0 as any,
   };
+  LastHeartbeatTimer = 0 as any;
 
   constructor (options?: ClientOptions) {
     this.ws = new WebSocket(FCoinUrl.market, options);
@@ -45,8 +45,8 @@ export class FcoinWebSocket {
   }
 
   HeartbeatInit (time: number) {
-    clearInterval(this.LastHeartbeat.timer);
-    this.LastHeartbeat.timer = setInterval(() => this.Heartbeat(), time);
+    clearInterval(this.LastHeartbeatTimer);
+    this.LastHeartbeatTimer = setInterval(() => this.Heartbeat(), time);
   }
 
   async Heartbeat () {
@@ -210,7 +210,7 @@ export class FcoinWebSocket {
 
   Close () {
     this.ws.close();
-    clearInterval(this.LastHeartbeat.timer);
+    clearInterval(this.LastHeartbeatTimer);
     delete this.ws;
   }
 }
