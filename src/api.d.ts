@@ -1,4 +1,4 @@
-import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance, CandleResolution } from './types';
 export declare class FCoinApi {
     private UserConfig;
     private Agent;
@@ -19,6 +19,17 @@ export declare class FCoinApi {
         type: string;
         created_at: number;
     }>>;
+    FetchCandle(symbol: string, resolution?: CandleResolution, limit?: number, before?: string): Promise<FcoinApiRes<{
+        id: number;
+        seq: number;
+        high: number;
+        low: number;
+        open: number;
+        close: number;
+        count: number;
+        base_vol: number;
+        quote_vol: number;
+    }[]>>;
     FetchBalance(): Promise<FcoinApiRes<CoinHas[]>>;
     FetchOrders(symbol: SymbolEnum, states?: string, limit?: string, time?: {
         value: number;

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import fetch from 'node-fetch';
-import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance, CandleResolution } from './types';
 import { FCoinUrl } from '.';
 import { URL } from 'url';
 
@@ -95,6 +95,22 @@ export class FCoinApi {
       type: string,
       created_at: number,
     }>);
+  }
+
+  async FetchCandle (symbol: string, resolution = CandleResolution.M1, limit = 20, before = '') {
+    const params = { limit };
+    if (before) Object.assign(params, { before });
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/candles/${resolution}/${symbol}`, null, params).then(res => res as FcoinApiRes<{
+      id: number; // 1540809840,
+      seq: number; // 24793830600000,
+      high: number; // 6491.74,
+      low: number; // 6489.24,
+      open: number; // 6491.24,
+      close: number; // 6490.07,
+      count: number; // 26,
+      base_vol: number; // 8.2221,
+      quote_vol: number; // 53371.531286
+    }[]>);
   }
 
   // 查询账户资产

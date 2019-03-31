@@ -93,6 +93,14 @@ class FCoinApi {
             return this.fetch('POST', `${_1.FCoinUrl.ApiV2}/orders/${id}/submit-cancel`).then(res => res);
         });
     }
+    FetchCandle(symbol, resolution = types_1.CandleResolution.M1, limit = 20, before = '') {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const params = { limit };
+            if (before)
+                Object.assign(params, { before });
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/candles/${resolution}/${symbol}`, null, params).then(res => res);
+        });
+    }
     // 查询账户资产
     FetchBalance() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
