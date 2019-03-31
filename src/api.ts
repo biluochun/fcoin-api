@@ -100,7 +100,7 @@ export class FCoinApi {
   async FetchCandle (symbol: string, resolution = CandleResolution.M1, limit = 20, before = '') {
     const params = { limit };
     if (before) Object.assign(params, { before });
-    return this.fetch('GET', `${FCoinUrl.ApiV2}/candles/${resolution}/${symbol}`, null, params).then(res => res as FcoinApiRes<{
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/market/candles/${resolution}/${symbol}`, null, params).then(res => res as FcoinApiRes<{
       id: number; // 1540809840,
       seq: number; // 24793830600000,
       high: number; // 6491.74,

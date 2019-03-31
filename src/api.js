@@ -98,7 +98,7 @@ class FCoinApi {
             const params = { limit };
             if (before)
                 Object.assign(params, { before });
-            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/candles/${resolution}/${symbol}`, null, params).then(res => res);
+            return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/market/candles/${resolution}/${symbol}`, null, params).then(res => res);
         });
     }
     // 查询账户资产
