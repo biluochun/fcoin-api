@@ -31,6 +31,7 @@ export declare class FCoinApi {
         quote_vol: number;
     }[]>>;
     FetchBalance(): Promise<FcoinApiRes<CoinHas[]>>;
+    FetchBalance2(): Promise<FcoinApiRes<CoinHas[]>>;
     FetchOrders(symbol: SymbolEnum, states?: string, limit?: string, time?: {
         value: number;
         type: 'after' | 'before';

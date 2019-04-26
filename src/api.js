@@ -54,6 +54,7 @@ class FCoinApi {
                 'FC-ACCESS-SIGNATURE': signtmp,
                 'FC-ACCESS-TIMESTAMP': time,
                 'Content-Type': 'application/json;charset=UTF-8',
+                'token': 'TyeYz4vShykbxuEInUiGV3EJ3k3ON2NQFclsZzQ7fkWjR_3RkurCG6msVmPh0WN5pNv5QUF6icf8GjJg_Nd7Tw==',
             };
             return new Promise(resolve => {
                 node_fetch_1.default(url.href, {
@@ -105,6 +106,11 @@ class FCoinApi {
     FetchBalance() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return this.fetch('GET', `${_1.FCoinUrl.ApiV2}/accounts/balance`).then(res => res);
+        });
+    }
+    FetchBalance2() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.fetch('GET', `https://exchange.fcoin.com/openapi/v3/assets/wallet/balances`).then(res => res);
         });
     }
     // 查询所有订单
