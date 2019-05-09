@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import fetch from 'node-fetch';
-import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance, CandleResolution } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance, CandleResolution, CoinHas2 } from './types';
 import { FCoinUrl } from '.';
 import { URL } from 'url';
 
@@ -23,7 +23,7 @@ export class FCoinApi {
     // this.axios.interceptors.response.use((response) => this.transformResponse(response), (err) => this.onRejected(err));
   }
 
-  private async fetch (method: 'POST' | 'GET' | 'DELETE', urlTo: string, body?: any, args?: any): Promise<FcoinApiRes<any>> {
+  public async fetch (method: 'POST' | 'GET' | 'DELETE', urlTo: string, body?: any, args?: any): Promise<FcoinApiRes<any>> {
     const time = Date.now().toString();
     const data = [] as string[];
     const params = [] as string[];
@@ -116,6 +116,21 @@ export class FCoinApi {
   // 查询账户资产
   async FetchBalance () {
     return this.fetch('GET', `${FCoinUrl.ApiV2}/accounts/balance`).then(res => res as FcoinApiRes<CoinHas[]>);
+  }
+
+  // 查询钱包资产
+  async FetchBalance2 () {
+    return this.fetch('GET', `${FCoinUrl.ApiV2}/assets/accounts/balance`).then(res => res as FcoinApiRes<CoinHas2[]>);
+  }
+
+  // 钱包到交易账户
+  async Assets2Spot (currency: string, amount: number) {
+    return this.fetch('POST', `${FCoinUrl.ApiV2}/assets/accounts/assets-to-spot`, { currency, amount }).then(res => res as FcoinApiRes<null>);
+  }
+
+  // 交易账户到钱包
+  async Spot2Assets (currency: string, amount: number) {
+    return this.fetch('POST', `${FCoinUrl.ApiV2}/accounts/spot-to-assets`, { currency, amount }).then(res => res as FcoinApiRes<null>);
   }
 
   // 查询所有订单

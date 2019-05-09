@@ -180,6 +180,11 @@ export interface CoinHas {
   balance: string;
 }
 
+export interface CoinHas2 extends CoinHas {
+  demand_deposit: string; // 理财资产
+  lock_deposit: string; // 锁仓资产
+}
+
 export interface OrderResult {
   id: string;
   symbol: string;
