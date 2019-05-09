@@ -1,9 +1,9 @@
-import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance, CandleResolution } from './types';
+import { SymbolEnum, SideEnum, DepthLevel, FcoinApiRes, CoinHas, OrderResult, DepthData, LeveragedBalance, CandleResolution, CoinHas2 } from './types';
 export declare class FCoinApi {
     private UserConfig;
     private Agent;
     constructor(key: string, secret: string, agent?: any);
-    private fetch;
+    fetch(method: 'POST' | 'GET' | 'DELETE', urlTo: string, body?: any, args?: any): Promise<FcoinApiRes<any>>;
     /**
      * 创建订单（买卖）
      */
@@ -31,7 +31,9 @@ export declare class FCoinApi {
         quote_vol: number;
     }[]>>;
     FetchBalance(): Promise<FcoinApiRes<CoinHas[]>>;
-    FetchBalance2(): Promise<FcoinApiRes<CoinHas[]>>;
+    FetchBalance2(): Promise<FcoinApiRes<CoinHas2[]>>;
+    Assets2Spot(currency: string, amount: number): Promise<FcoinApiRes<null>>;
+    Spot2Assets(currency: string, amount: number): Promise<FcoinApiRes<null>>;
     FetchOrders(symbol: SymbolEnum, states?: string, limit?: string, time?: {
         value: number;
         type: 'after' | 'before';

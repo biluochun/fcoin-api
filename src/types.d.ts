@@ -154,6 +154,10 @@ export interface CoinHas {
     frozen: string;
     balance: string;
 }
+export interface CoinHas2 extends CoinHas {
+    demand_deposit: string;
+    lock_deposit: string;
+}
 export interface OrderResult {
     id: string;
     symbol: string;
