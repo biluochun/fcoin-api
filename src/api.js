@@ -28,7 +28,7 @@ class FCoinApi {
             const time = Date.now().toString();
             const data = [];
             const params = [];
-            const secret = [`${method}${urlTo}`];
+            const secret = [`${method}${urlTo.replace(_1.FCoinUrl.ApiV2, _1.FCoinOriginUrl.ApiV2)}`];
             const url = new url_1.URL(urlTo);
             if (body) {
                 for (const arg in body)

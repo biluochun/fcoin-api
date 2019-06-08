@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fetch from 'node-fetch';
 import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance, CandleResolution, CoinHas2 } from './types';
-import { FCoinUrl } from '.';
+import { FCoinUrl, FCoinOriginUrl } from '.';
 import { URL } from 'url';
 
 export class FCoinApi {
@@ -27,7 +27,7 @@ export class FCoinApi {
     const time = Date.now().toString();
     const data = [] as string[];
     const params = [] as string[];
-    const secret = [`${method}${urlTo}`];
+    const secret = [`${method}${urlTo.replace(FCoinUrl.ApiV2, FCoinOriginUrl.ApiV2)}`];
     const url = new URL(urlTo);
 
     if (body) {

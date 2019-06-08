@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FCoinOriginUrl = {
+    ApiV2: 'https://api.fcoin.com/v2',
+    market: 'wss://api.fcoin.com/v2/ws',
+};
 exports.FCoinUrl = {
     ApiV2: 'https://api.fcoin.com/v2',
     market: 'wss://api.fcoin.com/v2/ws',

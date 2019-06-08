@@ -4,35 +4,41 @@ const HttpsProxyAgent = require('https-proxy-agent');
 import { expect } from 'chai';
 import 'mocha';
 import { DepthLevel } from '../src/types';
+import { SetFcoinDomain } from '../src';
 
-const agent = new HttpsProxyAgent(UserConfig.AgentConfig);
-const api = new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey, agent);
+if (UserConfig.SetFcoinDomain) {
+  SetFcoinDomain(UserConfig.SetFcoinDomain);
+}
+
+const agent = UserConfig.AgentConfig ? new HttpsProxyAgent(UserConfig.AgentConfig) : null;
+const api = agent ? new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey, agent) : new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey);
 
 describe('api.ts', () => {
-  it('FetchBalance', async () => {
+  it('FetchBalance', async function () {
     const res = await api.FetchBalance();
     expect(res.status).to.equal(0);
   });
 
-  it('Ticker', async () => {
+  it('Ticker', async function () {
     const res = await api.Ticker(UserConfig.TestSymbol);
     expect(res.status).to.equal(0);
   });
 
-  it('Depth', async () => {
+  it('Depth', async function () {
     const res = await api.Depth(UserConfig.TestSymbol, DepthLevel.L20);
     expect(res.status).to.equal(0);
   });
 
-  it('FetchOrders', async () => {
+  it('FetchOrders', async function () {
     const res = await api.FetchOrders(UserConfig.TestSymbol, 'submitted', '100', {
       value: Date.now(),
       type: 'before',
     });
+    console.log(res);
     expect(res.status).to.equal(0);
   });
 
-  it('FetchLeveragedBalances', async () => {
+  it('FetchLeveragedBalances', async function () {
     const res = await api.FetchLeveragedBalances();
     expect(res.status).to.equal(0);
   });
