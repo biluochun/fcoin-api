@@ -4,14 +4,9 @@ const HttpsProxyAgent = require('https-proxy-agent');
 import { expect } from 'chai';
 import 'mocha';
 import { DepthLevel } from '../src/types';
-import { SetFcoinDomain } from '../src';
 
-if (UserConfig.SetFcoinDomain) {
-  SetFcoinDomain(UserConfig.SetFcoinDomain);
-}
-
-const agent = UserConfig.AgentConfig ? new HttpsProxyAgent(UserConfig.AgentConfig) : null;
-const api = agent ? new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey, agent) : new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey);
+const agent = UserConfig.AgentConfig ? new HttpsProxyAgent(UserConfig.AgentConfig) : undefined;
+const api = new FCoinApi(UserConfig.ApiSecret, UserConfig.ApiKey, agent, UserConfig.SetFcoinDomain);
 
 describe('api.ts', () => {
   it('FetchBalance', async function () {

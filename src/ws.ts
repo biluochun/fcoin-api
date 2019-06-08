@@ -27,6 +27,8 @@ export class FcoinWebSocket {
   private typeListen: { [index: string]: WatchTicker<any>[] } = {};
   private wsOpen!: Promise<any>;
 
+  public Domain = '';
+
   // 最后一次呼吸返回
   public LastHeartbeat = {
     id: '',
@@ -36,8 +38,9 @@ export class FcoinWebSocket {
   };
   LastHeartbeatTimer = 0 as any;
 
-  constructor (options?: ClientOptions) {
-    this.ws = new WebSocket(FCoinUrl.market, options);
+  constructor (options?: ClientOptions, Domain = 'fcoin.com') {
+    this.Domain = Domain;
+    this.ws = new WebSocket(FCoinUrl.market.replace('fcoin.com', this.Domain), options);
     this.wsOpen = new Promise(resolve => {
       this.ws.on('open', resolve);
     });

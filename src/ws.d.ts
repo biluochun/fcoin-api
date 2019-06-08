@@ -23,6 +23,7 @@ export declare class FcoinWebSocket {
     private ws;
     private typeListen;
     private wsOpen;
+    Domain: string;
     LastHeartbeat: {
         id: string;
         type: string;
@@ -30,7 +31,7 @@ export declare class FcoinWebSocket {
         gap: number;
     };
     LastHeartbeatTimer: any;
-    constructor(options?: ClientOptions);
+    constructor(options?: ClientOptions, Domain?: string);
     HeartbeatInit(time: number): void;
     Heartbeat(): Promise<void>;
     /**

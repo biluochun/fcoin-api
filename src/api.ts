@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fetch from 'node-fetch';
 import { SymbolEnum, SideEnum, DepthLevel, DepthUnit, FcoinApiRes, CoinHas, OrderResult, TickerData, DepthData, LeveragedBalance, CandleResolution, CoinHas2 } from './types';
-import { FCoinUrl, FCoinOriginUrl } from '.';
+import { FCoinUrl } from '.';
 import { URL } from 'url';
 
 export class FCoinApi {
@@ -11,10 +11,13 @@ export class FCoinApi {
   };
   private Agent = undefined;
 
-  constructor (key: string, secret: string, agent?: any) {
+  public Domain = '';
+
+  constructor (key: string, secret: string, agent?: any, Domain = 'fcoin.com') {
     this.UserConfig.Key = key;
     this.UserConfig.Secret = secret;
     this.Agent = agent;
+    this.Domain = Domain;
     // this.axios = Axios.create({
     //   baseURL: FCoinUrl.ApiV2,
     //   timeout: 10000,
@@ -27,7 +30,8 @@ export class FCoinApi {
     const time = Date.now().toString();
     const data = [] as string[];
     const params = [] as string[];
-    const secret = [`${method}${urlTo.replace(FCoinUrl.ApiV2, FCoinOriginUrl.ApiV2)}`];
+    urlTo = urlTo.replace('fcoin.com', this.Domain);
+    const secret = [`${method}${urlTo.replace(this.Domain, 'fcoin.com')}`];
     const url = new URL(urlTo);
 
     if (body) {

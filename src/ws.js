@@ -24,8 +24,9 @@ const _1 = require(".");
  * {"cmd":"ping","args":[1531375817736]}
  */
 class FcoinWebSocket {
-    constructor(options) {
+    constructor(options, Domain = 'fcoin.com') {
         this.typeListen = {};
+        this.Domain = '';
         // 最后一次呼吸返回
         this.LastHeartbeat = {
             id: '',
@@ -34,7 +35,8 @@ class FcoinWebSocket {
             gap: 0,
         };
         this.LastHeartbeatTimer = 0;
-        this.ws = new ws_1.default(_1.FCoinUrl.market, options);
+        this.Domain = Domain;
+        this.ws = new ws_1.default(_1.FCoinUrl.market.replace('fcoin.com', this.Domain), options);
         this.wsOpen = new Promise(resolve => {
             this.ws.on('open', resolve);
         });
