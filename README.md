@@ -1,4 +1,4 @@
-# Fcoin-nodejs-api
+# FCoin-nodejs-api
 For some people，use api easily！
 
 脱胎于[官方文档](https://developer.fcoin.com/zh.html)
