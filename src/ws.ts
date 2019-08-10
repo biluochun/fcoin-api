@@ -23,9 +23,9 @@ import { FCoinUrl } from '.';
  */
 
 export class FcoinWebSocket {
-  private ws: WebSocket;
-  private typeListen: { [index: string]: WatchTicker<any>[] } = {};
-  private wsOpen!: Promise<any>;
+  public ws: WebSocket;
+  public typeListen: { [index: string]: WatchTicker<any>[] } = {};
+  public wsOpen!: Promise<any>;
 
   public Domain = '';
 
