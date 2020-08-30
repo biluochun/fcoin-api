@@ -19,7 +19,7 @@ export class FCoinApi {
     this.UserConfig.Secret = secret;
     this.Agent = agent;
     this.Domain = Domain;
-    this.SDomain = this.SDomain;
+    this.SDomain = SDomain;
     // this.axios = Axios.create({
     //   baseURL: FCoinUrl.ApiV2,
     //   timeout: 10000,
