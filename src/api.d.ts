@@ -3,7 +3,8 @@ export declare class FCoinApi {
     private UserConfig;
     private Agent;
     Domain: string;
-    constructor(key: string, secret: string, agent?: any, Domain?: string);
+    SDomain: string;
+    constructor(key: string, secret: string, agent?: any, Domain?: string, SDomain?: string);
     fetch(method: 'POST' | 'GET' | 'DELETE', urlTo: string, body?: any, args?: any): Promise<FcoinApiRes<any>>;
     /**
      * 创建订单（买卖）

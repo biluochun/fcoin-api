@@ -7,17 +7,19 @@ const types_1 = require("./types");
 const _1 = require(".");
 const url_1 = require("url");
 class FCoinApi {
-    constructor(key, secret, agent, Domain = 'fcoin.com') {
+    constructor(key, secret, agent, Domain = 'fcoin.com', SDomain = 'fcoin.com') {
         this.UserConfig = {
             Key: '',
             Secret: '',
         };
         this.Agent = undefined;
         this.Domain = '';
+        this.SDomain = '';
         this.UserConfig.Key = key;
         this.UserConfig.Secret = secret;
         this.Agent = agent;
         this.Domain = Domain;
+        this.SDomain = this.SDomain;
         // this.axios = Axios.create({
         //   baseURL: FCoinUrl.ApiV2,
         //   timeout: 10000,
@@ -31,7 +33,7 @@ class FCoinApi {
             const data = [];
             const params = [];
             urlTo = urlTo.replace('fcoin.com', this.Domain);
-            const secret = [`${method}${urlTo.replace(this.Domain, 'fcoin.com')}`];
+            const secret = [`${method}${urlTo.replace(this.Domain, this.SDomain)}`];
             const url = new url_1.URL(urlTo);
             if (body) {
                 for (const arg in body)

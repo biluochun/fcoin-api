@@ -1,5 +1,5 @@
-import { ClientOptions } from 'ws';
-import { SymbolEnum, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, WsResponseAllTickers } from './types';
+import WebSocket, { ClientOptions } from 'ws';
+import { SymbolEnum, WatchTicker, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTrade, CandleResolution, WsResponseCandle, WsResponseAllTickers } from './types';
 /**
  * topic 表示订阅的主题
  * symbol 表示对应交易币种. 所有币种区分的 topic 都在 topic 末尾.
@@ -20,9 +20,11 @@ import { SymbolEnum, WsResponseTicker, DepthLevel, WsResponseDepth, WsResponseTr
  * {"cmd":"ping","args":[1531375817736]}
  */
 export declare class FcoinWebSocket {
-    private ws;
-    private typeListen;
-    private wsOpen;
+    ws: WebSocket;
+    typeListen: {
+        [index: string]: WatchTicker<any>[];
+    };
+    wsOpen: Promise<any>;
     Domain: string;
     LastHeartbeat: {
         id: string;

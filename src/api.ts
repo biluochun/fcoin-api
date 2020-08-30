@@ -12,12 +12,14 @@ export class FCoinApi {
   private Agent = undefined;
 
   public Domain = '';
+  public SDomain = '';
 
-  constructor (key: string, secret: string, agent?: any, Domain = 'fcoin.com') {
+  constructor (key: string, secret: string, agent?: any, Domain = 'fcoin.com', SDomain = 'fcoin.com') {
     this.UserConfig.Key = key;
     this.UserConfig.Secret = secret;
     this.Agent = agent;
     this.Domain = Domain;
+    this.SDomain = this.SDomain;
     // this.axios = Axios.create({
     //   baseURL: FCoinUrl.ApiV2,
     //   timeout: 10000,
@@ -31,7 +33,7 @@ export class FCoinApi {
     const data = [] as string[];
     const params = [] as string[];
     urlTo = urlTo.replace('fcoin.com', this.Domain);
-    const secret = [`${method}${urlTo.replace(this.Domain, 'fcoin.com')}`];
+    const secret = [`${method}${urlTo.replace(this.Domain, this.SDomain)}`];
     const url = new URL(urlTo);
 
     if (body) {
